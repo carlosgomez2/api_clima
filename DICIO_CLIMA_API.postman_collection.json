@@ -1,0 +1,180 @@
+{
+	"info": {
+		"_postman_id": "8bca22bc-c15b-4ac6-a086-9b7507d53630",
+		"name": "DICIO_CLIMA_API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20678716",
+		"_collection_link": "https://diciodevs.postman.co/workspace/Team-Workspace~cda88eee-b8b4-4114-8f19-13fef4798216/collection/20678716-8bca22bc-c15b-4ac6-a086-9b7507d53630?action=share&source=collection_link&creator=20678716"
+	},
+	"item": [
+		{
+			"name": "Clima",
+			"item": [
+				{
+					"name": "GetCiudades",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://api.devdicio.net:9091/ciudades",
+							"protocol": "http",
+							"host": [
+								"api",
+								"devdicio",
+								"net"
+							],
+							"port": "9091",
+							"path": [
+								"ciudades"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPronostico",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://api.devdicio.net:9091/pronostico/Ciudad de México",
+							"protocol": "http",
+							"host": [
+								"api",
+								"devdicio",
+								"net"
+							],
+							"port": "9091",
+							"path": [
+								"pronostico",
+								"Ciudad de México"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Crear Usuarios",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"antony\",\n    \"email\": \"antony@example.com\",\n    \"full_name\": \"Antony Pérez\",\n    \"password\": \"password1234\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/users/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"users",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generar token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.environment.set(\"token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "username",
+							"value": "antony",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password1234",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener Pronostico",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8000/pronostico/Ciudad de México",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"pronostico",
+						"Ciudad de México"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
