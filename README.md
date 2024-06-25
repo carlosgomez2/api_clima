@@ -2,7 +2,7 @@
 Prueba técnica
 
 Descripcion:
-	Servicio que se encarga de registrar el clima de una ciudad
+ 	Este proyecto realiza la creación de usuario para poder realizar una consulta de clima en una ciudad y guarda el resultado en base de datos.
 
 Requerimientos:
 ```
