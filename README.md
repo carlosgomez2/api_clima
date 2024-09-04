@@ -65,3 +65,21 @@ docker stop api_clima_container
 # Eliminar el container
 docker rm api_clima_container
 ```
+
+# Tareas:
+
+1. [x] hacer el crud del usuario
+1.1. [x] autenticar el crud del usuario
+1.2. [x] revocar el token del usuario eliminado o dado de baja
+2. [x] agregar active a usuario
+3. [x] agregar update al usuario solo con 3 attrs
+4. [x] agregar delete al usuario
+4.1. [x] agregar un soft delete al usuario, deactivate (2 endpoints?? o uno solo con query param ?deactivate=true)
+4.2. [x] endpoint delete normal hace un eliminado de la BD
+5. [x] endpoint delete soft hace una baja logica de la BD
+6. [x] modificar obtener_pronostico para hacer un request a Clima/GetPronostico
+7. [-] Documentos de swagger
+8. [x] Dockerizar el proyecto
+9. [x] QueryWeather debe guardar el id del usuario que hizo la consulta cuando cree un registro
+10. [] Tests
+11. [x] Colección de postman
