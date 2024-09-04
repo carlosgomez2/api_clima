@@ -10,6 +10,7 @@ from passlib.context import CryptContext
 from database import engine, SessionLocal, get_db
 import models, schemas, crud, auth
 import requests as req
+import pdb
 
 # Load environment variables
 import os
@@ -103,16 +104,16 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
 
 # DELETE /users/:id (hard delete)
 @app.delete("/users/{user_id}", response_model=schemas.User, tags=["Users"])
-def delete_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
-    db_user = crud.delete_user(db, user_id)
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user), token: str = Depends(auth.oauth2_scheme)):
+    db_user = crud.delete_user(db, user_id, token)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 # DELETE /users/soft/:id (soft delete)
 @app.delete("/users/soft/{user_id}", response_model=schemas.User, tags=["Users"])
-def deactivate_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
-    db_user = crud.deactivate_user(db, user_id)
+def deactivate_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user), token: str = Depends(auth.oauth2_scheme)):
+    db_user = crud.deactivate_user(db, user_id, token)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     if not db_user:
@@ -146,8 +147,8 @@ def obtener_pronostico(ciudad: str):
         response = req.get(f"{os.getenv("API_URL")}/{os.getenv("PRONOSTICO_ENDPOINT")}/{ciudad}")
         response.raise_for_status()
         data = response.json()
-        pronostico = data["pronostico"] if data["pronostico"] else "No disponible"
-        temperatura = data["temperatura"] if data["temperatura"] else "No disponible"
+        pronostico = data["pronostico"] if data["pronostico"] else "Not available"
+        temperatura = data["temperatura"] if data["temperatura"] else "Not available"
         return pronostico, temperatura
     except req.exceptions.HTTPError as err:
         if response.status_code == 502:

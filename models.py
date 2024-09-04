@@ -30,3 +30,11 @@ class WeatherQuery(Base):
     user = relationship("User", back_populates="queries")
 
 User.queries = relationship("WeatherQuery", back_populates="user")
+
+
+class BlackListToken(Base):
+    __tablename__ = 'black_list_tokens'
+
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String, unique=True, index=True)
+    revoked_at = Column(DateTime, default=func.now())

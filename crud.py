@@ -5,6 +5,14 @@ from sqlalchemy.exc import IntegrityError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+# Tokens
+
+def add_token_to_black_list(db: Session, token: str):
+    banned_token = models.BlackListToken(token=token)
+    db.add(banned_token)
+    db.commit()
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -45,7 +53,7 @@ def create_weather_query(db: Session, query: schemas.WeatherQueryCreate, user_id
     return db_query
 
 # Delete user/:id (hard delete)
-def delete_user(db: Session, user_id: int):
+def delete_user(db: Session, user_id: int, token: str):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not db_user:
@@ -54,10 +62,12 @@ def delete_user(db: Session, user_id: int):
     db.delete(db_user)
     db.commit()
 
+    add_token_to_black_list(db, token)
+
     return db_user
 
 # Soft delete user/:id
-def deactivate_user(db: Session, user_id: int):
+def deactivate_user(db: Session, user_id: int, token: str):
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not db_user:
@@ -67,6 +77,8 @@ def deactivate_user(db: Session, user_id: int):
         return False
 
     db_user.deactivate(db)
+
+    add_token_to_black_list(db, token)
 
     return db_user
 
@@ -93,3 +105,4 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
 # GET /users/
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
+

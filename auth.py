@@ -35,6 +35,11 @@ async def get_current_user(db: Session = Depends(get_db), token: str = Depends(o
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        # Banned token check
+        banned_token = db.query(models.BlackListToken).filter(models.BlackListToken.token == token).first()
+        if banned_token:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked, renew your token")
+        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
