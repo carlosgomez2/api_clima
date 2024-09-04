@@ -9,3 +9,5 @@ python-jose
 
 python-multipart
 requests
+pytest
+httpx
