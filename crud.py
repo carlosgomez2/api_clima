@@ -27,3 +27,31 @@ def create_weather_query(db: Session, query: schemas.WeatherQueryCreate, user_id
     db.commit()
     db.refresh(db_query)
     return db_query
+
+# Delete user/:id
+def delete_user(db: Session, user_id: int):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not db_user:
+        return None
+
+    db.delete(db_user)
+    db.commit()
+
+    return db_user
+
+# Update user/:id
+def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+
+    if not db_user:
+        return None
+
+    db_user.email = user.email
+    db_user.full_name = user.full_name
+    db_user.password = pwd_context.hash(user.password)
+
+    db.commit()
+    db.refresh(db_user)
+
+    return db_user
