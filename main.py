@@ -41,7 +41,16 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    return crud.create_user(db=db, user=user)
+    else:
+        db_user = crud.create_user(db=db, user=user)
+
+    if db_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Error while creating user"
+        )
+
+    return db_user
 
 # GET /users/:id
 @app.get("/users/{user_id}", response_model=schemas.User, tags=["Users"])
@@ -59,12 +68,22 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# DELETE /users/:id
+# DELETE /users/:id (hard delete)
 @app.delete("/users/{user_id}", response_model=schemas.User, tags=["Users"])
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.delete_user(db, user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+# DELETE /users/soft/:id (soft delete)
+@app.delete("/users/soft/{user_id}", response_model=schemas.User, tags=["Users"])
+def deactivate_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud.deactivate_user(db, user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not db_user:
+        raise HTTPException(status_code=400, detail="User already deactivated")
     return db_user
 
 # GET /users/
