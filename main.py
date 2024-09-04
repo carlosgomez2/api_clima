@@ -18,7 +18,37 @@ load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+# Metadata for swagger
+
+description = """
+clima_api challenge Carlos Gomez. 🚀
+
+## Users
+
+You will be able to:
+
+* **Create users**.
+* **Read users**.
+* **Update users**.
+* **Delete users (hard)**.
+* **Deactivate users (soft delete)**.
+"""
+
+app = FastAPI(
+    title="Clima API",
+    description=description,
+    version="0.0.1",
+    terms_of_service="http://example.com/terms/",
+    contact={
+        "name": "Carlos Gomez",
+        "url": "https://carlosgomezror.dev",
+        "email": "carlosgomez.deb@gmail.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+)
 
 @app.post("/token", response_model=schemas.Token, tags=["Authentication"])
 async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
