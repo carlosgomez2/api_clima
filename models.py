@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func, Float, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
+from sqlalchemy.orm import Session
 
 class User(Base):
     __tablename__ = 'users'
@@ -10,6 +11,12 @@ class User(Base):
     hashed_password = Column(String)
     email = Column(String, unique=True, index=True)
     full_name = Column(String)
+    active = Column(Boolean, default=True) # Soft delete
+
+    def deactivate(self, db: Session):
+        self.active = False
+        db.add(self)
+        db.commit()
 
 class WeatherQuery(Base):
     __tablename__ = 'weather_queries'
