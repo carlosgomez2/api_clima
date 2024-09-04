@@ -6,6 +6,7 @@ class UserBase(BaseModel):
     username: str
     email: str
     full_name: Optional[str] = None
+    active: Optional[bool] = True
 
 class UserCreate(UserBase):
     password: str
@@ -19,7 +20,7 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -38,7 +39,8 @@ class WeatherQueryBase(BaseModel):
     temperature: float
 
 class WeatherQueryCreate(WeatherQueryBase):
-    pass
+    city: str
+    temperature: float
 
 class WeatherQuery(WeatherQueryBase):
     id: int
@@ -46,4 +48,4 @@ class WeatherQuery(WeatherQueryBase):
     query_time: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
