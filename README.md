@@ -30,3 +30,17 @@ Ejecución:
 	cd api_clima
 	uvicorn main:app --reload
 ```
+
+# Instalación y cambios para correr el proyecto
+
+- Se instalo una versión un poco mas nueva de pyenv
+
+```sh
+	pyenv install 3.12.5
+	pyenv global 3.12.5
+	pyenv virtualenv 3.12.5 api_clima_3_12_5
+	pyenv local api_clima_3_12_5
+	pyenv activate api_clima_3_12_5
+
+	pip install --no-cache-dir -r requirements.txt
+```
