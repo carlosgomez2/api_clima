@@ -39,7 +39,8 @@ class WeatherQueryBase(BaseModel):
     temperature: float
 
 class WeatherQueryCreate(WeatherQueryBase):
-    pass
+    city: str
+    temperature: float
 
 class WeatherQuery(WeatherQueryBase):
     id: int
