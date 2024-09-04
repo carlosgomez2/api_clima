@@ -19,7 +19,7 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -46,4 +46,4 @@ class WeatherQuery(WeatherQueryBase):
     query_time: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
