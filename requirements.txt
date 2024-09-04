@@ -8,4 +8,4 @@ python-dotenv
 python-jose
 
 python-multipart
-alembic
+requests

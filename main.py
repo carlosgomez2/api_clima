@@ -9,6 +9,7 @@ from typing import List, Optional
 from passlib.context import CryptContext
 from database import engine, SessionLocal, get_db
 import models, schemas, crud, auth
+import requests as req
 
 # Load environment variables
 import os
@@ -65,6 +66,9 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+# Users
+
 # GET /users/
 @app.post("/users/", response_model=schemas.User, tags=["Users"])
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -79,7 +83,6 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Error while creating user"
         )
-
     return db_user
 
 # GET /users/:id
@@ -92,7 +95,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 # PATCH /users/:id
 @app.patch("/users/{user_id}", response_model=schemas.User, tags=["Users"])
-def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
     db_user = crud.update_user(db, user_id, user)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -100,7 +103,7 @@ def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(ge
 
 # DELETE /users/:id (hard delete)
 @app.delete("/users/{user_id}", response_model=schemas.User, tags=["Users"])
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
     db_user = crud.delete_user(db, user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -108,7 +111,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 
 # DELETE /users/soft/:id (soft delete)
 @app.delete("/users/soft/{user_id}", response_model=schemas.User, tags=["Users"])
-def deactivate_user(user_id: int, db: Session = Depends(get_db)):
+def deactivate_user(user_id: int, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
     db_user = crud.deactivate_user(db, user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -126,6 +129,8 @@ def read_users(
     return users
 
 
+# Pronosticos
+
 @app.get("/pronostico/{ciudad}", response_model=schemas.Pronostico, tags=["Pronostico"])
 async def get_pronostico(ciudad: str, db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
     pronostico, temperatura = obtener_pronostico(ciudad)
@@ -137,7 +142,43 @@ async def get_pronostico(ciudad: str, db: Session = Depends(get_db), current_use
     return {"ciudad": ciudad, "pronostico": pronostico, "temperatura": temperatura}
 
 def obtener_pronostico(ciudad: str):
-    pronosticos = ["Soleado", "Parcialmente nublado", "Nublado", "Lluvias ligeras", "Tormentas", "Despejado"]
-    pronostico = random.choice(pronosticos)
-    temperatura = round(random.uniform(15.0, 35.0), 1)
-    return pronostico, temperatura
+    try:
+        response = req.get(f"{os.getenv("API_URL")}/{os.getenv("PRONOSTICO_ENDPOINT")}/{ciudad}")
+        response.raise_for_status()
+        data = response.json()
+        pronostico = data["pronostico"] if data["pronostico"] else "No disponible"
+        temperatura = data["temperatura"] if data["temperatura"] else "No disponible"
+        return pronostico, temperatura
+    except req.exceptions.HTTPError as err:
+        if response.status_code == 502:
+            raise HTTPException(status_code=502, detail="Bad Gateway: Invalid response from upstream server")
+        elif response.status_code == 504:
+            raise HTTPException(status_code=504, detail="Gateway Timeout: No response from upstream server")
+        else:
+            raise HTTPException(status_code=500, detail="HTTP error occurred")
+    except req.exceptions.RequestException as err:
+        raise HTTPException(status_code=500, detail="Network error occurred")
+
+@app.get("/db_seed", tags=["Seed"])
+def seed_db(db: Session = Depends(get_db), current_user: schemas.User = Depends(auth.get_current_user)):
+    try:
+        response = req.get(f"{os.getenv("API_URL")}/{os.getenv("SEED_ENDPOINT")}")
+        response.raise_for_status()
+        cities = response.json()
+        for city in cities:
+            pronostico, temperatura = obtener_pronostico(city)
+            weather_query = schemas.WeatherQueryCreate(
+                city=city,
+                temperature=temperatura
+            )
+            crud.create_weather_query(db=db, query=weather_query, user_id=current_user.id)
+        return {"message": "Database seeded"}
+    except req.exceptions.HTTPError as err:
+        if response.status_code == 502:
+            raise HTTPException(status_code=502, detail="Bad Gateway: Invalid response from upstream server")
+        elif response.status_code == 504:
+            raise HTTPException(status_code=504, detail="Gateway Timeout: No response from upstream server")
+        else:
+            raise HTTPException(status_code=500, detail="HTTP error occurred")
+    except req.exceptions.RequestException as err:
+        raise HTTPException(status_code=500, detail="Network error occurred")
