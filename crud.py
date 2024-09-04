@@ -55,3 +55,7 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db.refresh(db_user)
 
     return db_user
+
+# GET /users/
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()

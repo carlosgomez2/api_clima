@@ -67,7 +67,14 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-
+# GET /users/
+@app.get("/users/", response_model=List[schemas.User], tags=["Users"])
+def read_users(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)):
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
 
 
 @app.get("/pronostico/{ciudad}", response_model=schemas.Pronostico, tags=["Pronostico"])
